@@ -1,7 +1,8 @@
 module Data.Json where
 
-import Data.Maybe (fromMaybe)
-import Text.Parsec.Char (char, digit, newline, spaces, string)
+import Data.Functor
+import Data.Maybe
+import Text.Parsec.Char (char, digit, spaces, string)
 import Text.Parsec.Combinator (between)
 import Text.Parsec.String (Parser)
 import Text.ParserCombinators.Parsec (many, many1, noneOf, optionMaybe, sepBy, (<|>))
@@ -16,16 +17,18 @@ data JsonValue
   deriving (Show, Eq)
 
 jsonValueParser :: Parser JsonValue
-jsonValueParser = jsonPrimiviteValueParser <|> arrayParser <|> objectParser
-
-jsonPrimiviteValueParser :: Parser JsonValue
-jsonPrimiviteValueParser = literalParser <|> stringParser <|> numberParser
+jsonValueParser =
+  literalParser
+    <|> stringParser
+    <|> numberParser
+    <|> arrayParser
+    <|> objectParser
 
 literalParser :: Parser JsonValue
 literalParser =
-  (string "null" >> return JsonNull)
-    <|> (string "true" >> return (JsonBool True))
-    <|> (string "false" >> return (JsonBool False))
+  (string "null" $> JsonNull)
+    <|> (string "true" $> JsonBool True)
+    <|> (string "false" $> JsonBool False)
 
 stringParser :: Parser JsonValue
 stringParser = JsonString <$> quotedString
@@ -42,17 +45,23 @@ numberParser = do
   return . JsonNumber . read $ sign <> whole <> frac
 
 arrayParser :: Parser JsonValue
-arrayParser = JsonArray <$> between (char '[') (char ']') (jsonPrimiviteValueParser `sepBy` commaDelimiter)
+arrayParser = JsonArray <$> surroundedBy (char '[') (char ']') (jsonValueParser `sepBy` commaDelimiter)
 
 objectParser :: Parser JsonValue
-objectParser = JsonObject <$> between (char '{') (char '}') (fieldParser `sepBy` commaDelimiter)
+objectParser = JsonObject <$> surroundedBy (char '{') (char '}') (fieldParser `sepBy` commaDelimiter)
   where
-    fieldParser = (,) <$> quotedString <*> (char ':' *> spaces *> jsonValueParser)
+    fieldParser = (,) <$> quotedString <*> (spacesAround (char ':') *> jsonValueParser)
 
 quotedString :: Parser String
 quotedString = between (char '"') (char '"') nonEscapeChars
   where
-    nonEscapeChars = many $ noneOf ['"'] <|> newline
+    nonEscapeChars = many $ noneOf ['"', '\n']
 
-commaDelimiter :: Parser ()
-commaDelimiter = char ',' *> spaces <* optionMaybe newline
+surroundedBy :: Parser b -> Parser d -> Parser a -> Parser a
+surroundedBy open close = between (spacesAround open) (spacesAround close)
+
+commaDelimiter :: Parser Char
+commaDelimiter = spacesAround $ char ','
+
+spacesAround :: Parser a -> Parser a
+spacesAround = between spaces spaces
