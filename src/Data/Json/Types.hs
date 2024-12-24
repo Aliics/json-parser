@@ -1,10 +1,18 @@
-module Data.Json.Types (JsonValue (..)) where
+module Data.Json.Types
+  ( FromJson (..),
+    Json (..),
+    fromJsonValue,
+    lookupJson,
+    JsonValue (..),
+    jsonBool,
+    jsonNumber,
+    jsonString,
+    jsonArray,
+  )
+where
 
-data JsonValue
-  = JsonNull
-  | JsonBool Bool
-  | JsonNumber Float
-  | JsonString String
-  | JsonArray [JsonValue]
-  | JsonObject [(String, JsonValue)]
-  deriving (Show, Eq)
+import Data.Json.Types.Json (Json (..), fromJsonValue, lookupJson)
+import Data.Json.Types.JsonValue (JsonValue (..), jsonArray, jsonBool, jsonNumber, jsonString)
+
+class FromJson a where
+  fromJson :: Json -> Maybe a

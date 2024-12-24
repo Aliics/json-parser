@@ -21,6 +21,8 @@ library
     exposed-modules:  
       Data.Json,
       Data.Json.Types,
+      Data.Json.Types.Json,
+      Data.Json.Types.JsonValue,
       Data.Json.Internal.Parser
     -- other-modules:
     -- other-extensions:
