@@ -20,6 +20,7 @@ library
     import:           warnings
     exposed-modules:  
       Data.Json,
+      Data.Json.Errors,
       Data.Json.Types,
       Data.Json.Types.Json,
       Data.Json.Types.JsonValue,
