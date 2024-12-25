@@ -1,7 +1,7 @@
 module Data.Json.Internal.Parser (jsonValueParser) where
 
 import Data.Functor
-import Data.Json
+import Data.Json.Types.JsonValue (JsonValue (..))
 import Data.Maybe
 import Text.Parsec.Char (char, digit, spaces, string)
 import Text.Parsec.Combinator (between)
